@@ -64,10 +64,11 @@ export default function Index ({ onInspect, casing, layout }) {
           {/* The byline says what the footer does not. It counted the rows once
               and the footer counted them again, which is one fact twice. */}
           <p className="muted small page-sub" {...txt('body-sm', 'text-muted')}>
-            {/* `.figure`, not `.amount`. It is a sum, but it sits in a
-                sentence rather than in a column, and there is nothing beside
-                it to line up with. The right edge belongs to the column. */}
-            <span className="figure">$184,320</span> outstanding · 2 overdue
+            {/* NO `.figure`. It is a sum, and it sits in a SENTENCE rather
+                than in a column. A column is what makes the face matter, so a
+                figure with nothing to stack against keeps the body face and
+                the page's own voice. */}
+            $184,320 outstanding · 2 overdue
           </p>
           <div className="row page-actions">
             <button className="btn btn-secondary" {...ins('button-secondary')}><Ico d={IconDownload} />{L('Export')}</button>
@@ -333,14 +334,17 @@ export default function Index ({ onInspect, casing, layout }) {
          * `polite`, not `assertive`. A range that updates is worth hearing at
          * the next pause, not worth interrupting for. */}
         <span className="small muted" role="status" aria-live="polite" {...txt('body-sm', 'text-muted')}>
-          Showing <span className="figure">1–10</span> of <span className="figure">48</span>
+          {/* A range inside a sentence, so no `.figure`: nothing here sits in
+              a column. */}
+          Showing 1–10 of 48
         </span>
         {/* One group, so the label, the dropdown and the arrows travel
             together and the whole thing sits on the sentence's baseline. */}
         <span className="row">
           <span className="small muted" {...txt('body-sm', 'text-muted')}>{L('Rows')}</span>
           <button className="btn btn-secondary btn-sm select-trigger" {...ins('select')}>
-            <span className="figure">10</span><Ico d={IconChevron} size="sm" />
+            {/* A control's own label, not a column. No `.figure`. */}
+            10<Ico d={IconChevron} size="sm" />
           </button>
           {/* A NAMED LANDMARK AROUND THE STEPS, AND ONLY THE STEPS.
            *

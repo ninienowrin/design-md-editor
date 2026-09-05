@@ -265,10 +265,12 @@ export default function Dashboard({ onInspect, layout, casing, theme, mode, onTo
               <span key={label} {...txt('caption', 'text-muted')}>
                 <span className="dot" style={{ color: `var(--chart-${i + 1})` }} />
                 {L(label)}
-                {/* `.figure`, not `.amount`: the mono face without the right
-                    edge. These sit inline beside their own labels rather than
-                    in a column, so there is nothing to line up against. */}
-                <span className="figure">{pct}%</span>
+                {/* NO `.figure`. A COLUMN is what makes the mono face matter,
+                    and this sits inline beside its own label. The old rule
+                    said every figure took the face, so this carried it; the
+                    rule was narrowed to columns and this is one of the four
+                    sites that kept the superseded answer. */}
+                {pct}%
               </span>
             ))}
           </div>

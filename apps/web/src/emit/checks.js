@@ -628,6 +628,131 @@ export const CHECKS = [
   },
 
   {
+    id: 'an-action-centres-on-its-heading-cap-band',
+    where: 'render',
+    line: 'A control beside a heading centres its box between that heading’s cap line and baseline.',
+    /* ── "CENTRE THE TWO" WAS NOT AN INSTRUCTION, AND NOTHING MEASURED IT ──
+     *
+     * `icon-on-the-cap-band` asks about a mark beside its OWN label, inside a
+     * control. A button beside a page heading is a different shape: the
+     * heading is not the button's label, so that check never looked, and the
+     * rule had no instrument at all.
+     *
+     * Measured on a generated dashboard: a 40px title with its cap line at 31
+     * and its baseline at 61, and two 36px buttons centred at 58.5. That is
+     * 12.5px below the band centre, on the one row a reader looks at first.
+     * Both verifiers passed the page.
+     *
+     * A LINE BOX IS NOT A CAP BAND. The line box carries the leading and the
+     * descender space the capitals never use, so `align-items: center` on the
+     * row lands the control below the letters. The gap grows with the type.
+     *
+     * THREE GUARDS, and each is the rule rather than a taste.
+     *
+     * A SMALL heading shares a BASELINE with the control instead, and the
+     * system states the threshold: centring starts once the heading is one and
+     * a half times the control's own font size.
+     *
+     * A WRAPPED heading has no single cap centre. Which line the controls take
+     * is a published setting — first, optical centre, or last — so the check
+     * accepts any of its lines rather than guessing which was chosen.
+     *
+     * A control that has DROPPED BELOW the heading is the collapsed
+     * arrangement, which the layout rules ask for. It is only on the heading's
+     * row that there is anything to centre against. */
+    body: [
+      "for (const h of all('h1,h2,h3,h4,h5,h6')) {",
+      "  const band = capBand(h)",
+      "  if (!band) continue",
+      "  const hSize = parseFloat(getComputedStyle(h).fontSize) || 0",
+      /* ── ASK FOR THE LINES, DO NOT BORROW A FIELD ──
+       *
+       * `capBand` returns `lines` from `textRect`, and that field is a COUNT
+       * rather than a list. Reading `.length` off a number gives undefined, so
+       * the first version of this check skipped every heading and reported a
+       * page it had already been shown to be wrong by 12.5px. A check that
+       * cannot run reads exactly like a check that passed.
+       *
+       * The rects come from the heading's own range. Several rects can share a
+       * line, so they are folded onto distinct tops. */
+      "  const range = document.createRange()",
+      "  range.selectNodeContents(h)",
+      "  const rects = Array.prototype.slice.call(range.getClientRects())",
+      "    .filter(function (r) { return r.width > 0 && r.height > 0 })",
+      "  if (!rects.length) continue",
+      "  const tops = []",
+      "  for (const r of rects) {",
+      "    if (!tops.some(function (t) { return Math.abs(t - r.top) < 1 })) tops.push(r.top)",
+      "  }",
+      "  const first = Math.min.apply(null, tops)",
+      "  const ascent = band.baseline - first",
+      "  const capH = band.baseline - band.cap",
+      "  const centres = tops.map(function (t) { return t + ascent - capH / 2 })",
+      /* ── THE ROW TEST READS LAYOUT, NOT PAINT ──
+       *
+       * `getBoundingClientRect` includes transforms, and the correct fix for
+       * this very rule uses one. So a heading whose actions had wrapped onto
+       * their own line still overlapped it on screen by the size of that
+       * shift, and a geometric test called them a row. It would have faulted
+       * the collapsed arrangement, which is the layout the rules ask for.
+       *
+       * `offsetTop` and `offsetHeight` ignore transforms, so they answer where
+       * the flex line actually put each item. Compare the two ITEMS, meaning
+       * each one's own child of the container they share. */
+      "  const pairing = el => {",
+      "    let n = el",
+      "    for (let i = 0; i < 4 && n; i++) {",
+      "      const p = n.parentElement",
+      "      if (!p) return null",
+      "      if (p.contains(h)) {",
+      "        let m = h",
+      "        while (m && m.parentElement !== p) m = m.parentElement",
+      "        return m && m !== n ? { item: n, headItem: m } : null",
+      "      }",
+      "      n = p",
+      "    }",
+      "    return null",
+      "  }",
+      "  const sameLine = pair =>",
+      "    pair.item.offsetTop < pair.headItem.offsetTop + pair.headItem.offsetHeight &&",
+      "    pair.item.offsetTop + pair.item.offsetHeight > pair.headItem.offsetTop",
+      "  for (const c of all('button, a[href], [role=\"button\"], .btn')) {",
+      "    if (h.contains(c) || c.contains(h)) continue",
+      "    const r = c.getBoundingClientRect()",
+      "    if (!r.width || !r.height) continue",
+      "    /* On the heading's ROW. Dropped below it is the collapsed layout. */",
+      "    const pair = pairing(c)",
+      "    if (!pair || !sameLine(pair)) continue",
+      /* ── A CONTROL BEHIND A SCRIM IS NOT BESIDE ANYTHING ──
+       *
+       * A dialog's heading overlaps whatever the page holds at that height, so
+       * an overlay surface reported its own page's toolbar buttons against the
+       * dialog's title, 24.64px apart. They are not on that row. They are
+       * under it.
+       *
+       * "No answer" is not "no": `elementFromPoint` returns null for anything
+       * outside the viewport, and reading that as covered would drop real
+       * findings on a long page. Only a real element that is neither this
+       * control nor part of it counts as covering it. */
+      "    const cr = c.getBoundingClientRect()",
+      "    const onTop = document.elementFromPoint(cr.left + cr.width / 2, cr.top + cr.height / 2)",
+      "    if (onTop && onTop !== c && !c.contains(onTop) && !onTop.contains(c)) continue",
+      "    const cSize = parseFloat(getComputedStyle(c).fontSize) || 0",
+      "    if (!cSize || hSize < cSize * 1.5) continue",
+      "    const mid = (r.top + r.bottom) / 2",
+      "    let off = null",
+      "    for (const centre of centres) {",
+      "      const d = mid - centre",
+      "      if (off === null || Math.abs(d) < Math.abs(off)) off = d",
+      "    }",
+      "    if (off === null || Math.abs(off) <= 1) continue",
+      "    fail(name(c), 'this control sits ' + round(off) + 'px from the cap-band centre of ' + name(h) + ' beside it. The band is the top of a capital letter to the baseline, and it is ' + round(capH) + 'px on a ' + round(hSize) + 'px heading. A line box is taller than that, because it carries leading and descender space the capitals never use, so centring on the ROW lands the control below the letters. Centre the box between those two lines and let it overhang both equally.')",
+      "  }",
+      "}",
+    ],
+  },
+
+  {
     id: 'a-column-of-figures-takes-the-mono-face',
     where: 'render',
     line: 'Every cell in a column of figures is set in the mono family.',
@@ -682,6 +807,43 @@ export const CHECKS = [
       "    if (mixed || figures < 2 || !body) continue",
       "    fail(name(first), 'this column holds ' + figures + ' figures and ' + body + ' of them are set in the body face. A column is what makes the mono face matter: it gives every digit one width, so the digits stack. A proportional face cannot line them up however carefully the cells are padded. Set the family on the cell, not on one span inside it, or the next value added lands in the wrong face.')",
       "  }",
+      "}",
+    ],
+  },
+
+  {
+    id: 'a-standalone-figure-keeps-the-body-face',
+    where: 'render',
+    line: 'A figure with no column to stack against keeps the body face.',
+    /* ── THE OTHER HALF, AND ONLY ONE HALF WAS CHECKED ──
+     *
+     * `a-column-of-figures-takes-the-mono-face` asks that a column IS mono.
+     * Nothing asked that everything else is NOT, so a build could set every
+     * figure on the page in the mono face and pass. One did: a generated
+     * dashboard put its three stat tiles in it at 32px, and a reader spotted
+     * it in a screenshot.
+     *
+     * A COLUMN is what makes the face matter. The mono face exists so digits
+     * stack over each other, and one figure standing alone has nothing to
+     * stack against — so the face buys it nothing and costs it the page's own
+     * voice. A stat tile, a pricing hero, a badge count and a number inside a
+     * sentence all keep the body face.
+     *
+     * TABLES ARE NOT THIS CHECK'S BUSINESS. The column check owns them, and a
+     * bare number in a text cell is ambiguous from here. Code is not either:
+     * a mono face inside `code`, `pre`, `kbd` or `samp` is the whole point of
+     * naming a mono family. */
+    body: [
+      "const MONO = /mono|courier|consolas|menlo|ui-monospace/i",
+      "const FIGURE = /^[^0-9A-Za-z]{0,2}[0-9](?:[0-9,.:/\\u00a0 ]*[0-9])?[^0-9A-Za-z]?$/",
+      "for (const el of all('*')) {",
+      "  if (el.children.length) continue",
+      "  if (el.closest('table, code, pre, kbd, samp')) continue",
+      "  const text = (el.textContent || '').replace(/\\s+/g, ' ').trim()",
+      "  if (!text || !FIGURE.test(text)) continue",
+      "  const face = getComputedStyle(el).fontFamily",
+      "  if (!MONO.test(face)) continue",
+      "  fail(name(el), 'this figure reads \"' + text + '\" and sits in the mono face with no column to stack against. A column is what makes that face matter: it gives every digit one width so the digits line up down the page. Alone it buys nothing and costs the page its own voice. A stat tile, a hero price, a badge count and a number inside a sentence all keep the body face.')",
       "}",
     ],
   },

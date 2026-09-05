@@ -486,7 +486,15 @@
   .dmd .page-head > .page-title { order: 1; }
   .dmd .page-head > .nav-collapse { order: 2; }
   .dmd .page-head > .page-sub { order: 3; }
-  .dmd .page-head > .page-actions { order: 4; flex: 1 0 100%; }
+  /* THE CENTRING TRANSFORM BELONGS TO THE TITLE'S ROW, AND THIS IS NOT IT.
+     Beside the heading the actions lift by half the difference between the
+     heading's line and their own height, which is what puts them on its cap
+     band. On a line of their own there is nothing to centre against, and that
+     lift pulls them up over whatever sits above: measured as 18 covered
+     elements across Landing, Settings and Overlays at 296 to 320px, on labels
+     and captions that had been clear before. A transform costs no layout,
+     which is exactly why it can overlap. */
+  .dmd .page-head > .page-actions { order: 4; flex: 1 0 100%; transform: none; }
   /* The auto margin moves with the control that needs it. It sits on the action
      group above, which pushes that group right — but here the group is on a
      line of its own and the menu button shares the title's line, so the button

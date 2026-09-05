@@ -861,7 +861,18 @@ function componentsBody(state, derived) {
          its page and would not have on a bigger title. This one now names the
          block to align to and defers on the method, with a number rather than
          a judgement call. */
-      'Page actions belong to the heading, not to the heading-and-description block. Align them to the heading itself. Which alignment depends on the size difference: share a baseline while the heading is under one and a half times the control\'s font size, and centre the two once it is over that. Never pin the actions to the top of the band with `align-items: flex-start` — that leaves them floating above a title whose letters sit well below them.',
+      /* ── "CENTRE THE TWO" WAS NOT AN INSTRUCTION ──
+       *
+       * It said centre, and never centre on WHAT. A generated dashboard read
+       * it as the heading's line box, which is far taller than its cap band,
+       * and shipped its Export and New Invoice buttons 12.5px below the band
+       * centre on a 40px title. Nothing objected, because no check measured a
+       * control against a heading.
+       *
+       * The band is the whole rule, and it is the same one an icon beside a
+       * label obeys: the top of a capital letter, and the line the letters sit
+       * on. Say those two lines by name. */
+      'Page actions belong to the heading, not to the heading-and-description block. Align them to the heading itself. Which alignment depends on the size difference: share a baseline while the heading is under one and a half times the control\'s font size, and centre the two once it is over that. **CENTRE MEANS ON THE HEADING\'S CAP BAND, NEVER ON ITS LINE BOX.** The two lines are the top of a capital letter and the baseline the letters sit on, exactly as for an icon beside a label. A heading\'s line box is far taller than that band, because it carries the leading and the descender space the capitals never use — so `align-items: center` on the row lands the control below the letters, measured 12.5px low on a 40px title. Centre the control\'s BOX between those two lines and let it overhang both equally, which is what centred means. Never pin the actions to the top of the band with `align-items: flex-start` — that leaves them floating above a title whose letters sit well below them.',
       'First and last cells in a table sit flush with the container\'s padding edge. Zero their outer horizontal padding rather than letting the column gutter add to the card\'s own, or the first column starts further in than every heading above it.',
       '**THE SELECTION COLUMN IS THE ONE EXCEPTION, AND IT HAS ITS OWN ENTRY.** A column that carries the selected row\'s accent bar cannot also sit flush, because the bar would paint over whatever is in the cell. `table-selection-cell` publishes that column\'s padding with the bar\'s gutter already in it. Take it on EVERY row of that column, selected or not, and take `table-cell` for every other column.',
       'Never build an underline from a border. A 2px border makes the element 2px taller and pushes it past its own container\'s rule, breaking that line exactly where the element sits. A *transparent* border costs the same height, so the inactive siblings sit wrong too. Paint it with `box-shadow: inset 0 -2px 0` instead, which lands in the same place and joins no box.',

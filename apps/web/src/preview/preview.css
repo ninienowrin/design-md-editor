@@ -1312,12 +1312,33 @@
  *
  * The control's BOX centres on the LINE's box. One offset serves both edge
  * cases, because the distance from a line's edge to the control's centre is the
- * same at the top and at the bottom:
+ * same at the top and at the bottom.
  *
- *     (first line − control height) / 2
+ * IT MUST NOT NAME THE CONTROL'S HEIGHT. The offset was
+ * `(line − --cmp-button-sm-height) / 2`, which is right only for a row that
+ * holds small buttons. Measured at a 1280px frame: the Dashboard's 28px action
+ * row sat 0.59px from the heading's cap-band centre, and the Index surface's
+ * 36px row sat 3.41px from it, on identical CSS. The error is half the
+ * difference between the real height and the one the formula assumed.
  *
- * Both terms are tokens. The line is `size × leading` and the control's height
- * is its own step, so a type-scale change carries and nothing here is typed.
+ * One transform, and no margin:
+ *
+ *     translateY(calc(50% - line / 2))
+ *
+ * A percentage in a transform resolves against the element's OWN box, so the
+ * height never has to be named and any row lands in the same place. The line
+ * is `size × leading`, both tokens, so a type-scale change still carries.
+ *
+ * DO NOT SPLIT IT INTO A MARGIN AND A TRANSFORM. Written as
+ * `margin-bottom: line/2` plus `translateY(50%)` the arithmetic is identical
+ * and the layout is not: a margin joins the flex line, so a 36px action row
+ * with 26.6px under it made the line 62.6px tall and pushed the heading's own
+ * bottom edge down 9.4px. The offset then measured from a row that had moved.
+ * A transform costs no layout, which is the whole reason it is the tool here.
+ *
+ * The residue is the difference between a line box and a cap band, measured at
+ * 0.59px on a 40px heading. That is half a pixel of move, and an optical
+ * correction below one pixel is one nobody can see.
  *
  * Baseline alignment was tried here and withdrawn at their request. It is worth
  * knowing what it measured, because the numbers still stand: `align-items:
@@ -1330,24 +1351,27 @@
  * the same reason. */
 .dmd .page-head > .page-actions,
 .dmd .page-head > .nav-collapse {
-  --head-line-offset: calc((var(--font-h2-size, 40px) * var(--font-h2-leading, 1.2)
-                            - var(--cmp-button-sm-height, 28px)) / 2);
+  --head-line-offset: calc(var(--font-h2-size, 40px) * var(--font-h2-leading, 1.2) / 2);
   align-self: flex-end;
-  margin-bottom: var(--head-line-offset);
+  margin-bottom: 0;
+  transform: translateY(calc(50% - var(--head-line-offset)));
 }
 .dmd[data-heading-align="first"] .page-head > .page-actions,
 .dmd[data-heading-align="first"] .page-head > .nav-collapse {
   align-self: flex-start;
   margin-bottom: 0;
-  margin-top: var(--head-line-offset);
+  margin-top: 0;
+  transform: translateY(calc(var(--head-line-offset) - 50%));
 }
-/* The block's own centre, so no offset. A margin here would move it off the
-   centre the alignment just found. */
+/* The block's own centre, so no offset and no transform. A margin here would
+   move it off the centre the alignment just found, and the half-height shift
+   the other two need is already done by `center`. */
 .dmd[data-heading-align="center"] .page-head > .page-actions,
 .dmd[data-heading-align="center"] .page-head > .nav-collapse {
   align-self: center;
   margin-top: 0;
   margin-bottom: 0;
+  transform: none;
 }
 /* The byline belongs to the title, so it sits close enough to read as one
    block.
@@ -1589,6 +1613,13 @@
  * an invoice number, a reference, a version — takes the face alone and keeps
  * its alignment, because nobody compares its size and a right-aligned
  * identifier reads as a total. */
+/* A COLUMN of figures that are not amounts: an invoice number, a version, a
+   hash. The face without the end edge, because nobody compares their
+   magnitude and an end-aligned identifier reads as a total.
+   ONLY IN A COLUMN. A column is what makes the face matter, so a figure with
+   nothing to stack against keeps the body face. Four sites carried this class
+   inline — a chart legend, a sentence, a pager range and a control's own
+   label — under the older rule that gave every figure the face. */
 .dmd .figure { font-family: var(--font-code-family, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
 /* `display: block`, so the right edge is a promise the class can actually
    keep. As an inline span its `text-align` did nothing at all: alignment is
