@@ -156,6 +156,29 @@
 .dmd label.input.with-icon > svg,
 .dmd .with-icon:not(.badge):not(.btn):not(.nav-item) > .icon,
 .dmd .with-icon:not(.badge):not(.btn):not(.nav-item) > svg,
+/* ── A CONTAINER LIST FINDS THE CASES SOMEBODY THOUGHT OF ──
+ *
+ * Every branch above names a container: `.btn`, `.nav-item`, `.with-icon`,
+ * `label.input.with-icon`. A mark in any other one gets no rule at all, and
+ * three containers in this stylesheet are exactly that shape. Measured on a
+ * 14px label with a 10px cap band and a 14px mark: 4px above the cap line and
+ * 0 below the baseline, so the mark sits 2px high.
+ *
+ * ONLY `.plan-fact`, AND I ADDED `.row` FIRST ON A BAD ENUMERATION. The query
+ * asked which marks carry no transform inside a baseline row, and answered
+ * `.plan-fact` 4, `.row` 3, `.card-overlay.row` 1. Carrying no transform is
+ * not the same as being wrong. The three `.row` marks measured 1.88px above
+ * the cap and 2.13 below the baseline, which is 0.13 off centre and correct.
+ * The sweep had never reported them, and adding the rule pushed all three
+ * 1.88px low.
+ *
+ * ENUMERATE ON THE FAULT, NEVER ON THE MECHANISM. The instrument that finds
+ * this fault is `iconOffCentre`, and it named one container.
+ *
+ * A DIRECT CHILD, so a mark inside a button inside this row keeps the button's
+ * own rule and its exclusions. */
+.dmd .plan-fact > .icon,
+.dmd .plan-fact > svg,
 /* AND A WRAPPER THAT HOLDS ONLY THE MARK. The editor wraps every component
    instance in an inspector span, so inside a preview the mark is a grandchild
    and `> svg` matches nothing at all. Worse once the row aligns on the
@@ -163,7 +186,11 @@
    MARGIN edge, so the mark hung its whole height above the line, measured 6px
    over the cap against 0 below the baseline. The wrapper is the flex item, so
    the wrapper is what takes the rule. */
-.dmd .with-icon:not(.badge):not(.btn):not(.nav-item) > span:has(> svg):not(:has(> :not(svg))) {
+.dmd .with-icon:not(.badge):not(.btn):not(.nav-item) > span:has(> svg):not(:has(> :not(svg))),
+/* The same wrapper case in the two containers added above. The inspector wraps
+   every instance, so inside a preview the mark is a grandchild here too.
+   NOT `.row`. See the note above: those icons were already centred. */
+.dmd .plan-fact > span:has(> svg):not(:has(> :not(svg))) {
   vertical-align: baseline;
   align-self: baseline;
   transform: translateY(calc((100% - 0.75em) / 2));
@@ -2200,6 +2227,11 @@
   justify-content: space-between;
   gap: var(--space-md, 16px);
   padding: var(--space-2xs, 4px) 0;
+  /* A ROW CARRIES ITS LABEL'S TYPE, or the mark's cap band is computed from
+     the wrong size. The row sat at the body step while its only label is the
+     small one, so `0.75em` on the mark resolved to a 12px band for a 14px
+     label. It lifted 1px where 2 was wanted, and the mark stayed 1px high. */
+  font-size: var(--font-body-sm-size, 14px);
 }
 /* The recommended column is marked by its EDGE, never by a fill. A filled
    column beside two unfilled ones reads as chosen, and nobody has chosen
